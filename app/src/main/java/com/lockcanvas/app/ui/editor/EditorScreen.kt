@@ -107,47 +107,48 @@ fun EditorScreen(viewModel: EditorViewModel = viewModel()) {
                                 leadingIcon = { Icon(Icons.Filled.Alarm, contentDescription = null) },
                                 onClick = { RenderScheduler.requestExactPermission(context); settingsExpanded = false },
                             )
+                            HorizontalDivider(modifier = Modifier.padding(vertical = 2.dp))
+                            DropdownMenuItem(
+                                text = { Text(if (state.enabled) "Lock screen updates ON" else "Lock screen updates OFF") },
+                                trailingIcon = {
+                                    Switch(
+                                        checked = state.enabled,
+                                        onCheckedChange = { enabled ->
+                                            if (enabled && !RenderScheduler.canScheduleExact(context)) {
+                                                RenderScheduler.requestExactPermission(context)
+                                            }
+                                            viewModel.setEnabled(enabled)
+                                        },
+                                    )
+                                },
+                                onClick = {
+                                    val enabled = !state.enabled
+                                    if (enabled && !RenderScheduler.canScheduleExact(context)) {
+                                        RenderScheduler.requestExactPermission(context)
+                                    }
+                                    viewModel.setEnabled(enabled)
+                                },
+                            )
+                            Text(
+                                "Update interval",
+                                style = MaterialTheme.typography.labelMedium,
+                                modifier = Modifier.padding(start = 16.dp, top = 4.dp),
+                            )
+                            RenderScheduler.INTERVAL_CHOICES_MINUTES.forEach { m ->
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(
+                                            (if (m >= 60) "${m / 60} h" else "$m min") +
+                                                if (m == state.intervalMinutes) "  •" else ""
+                                        )
+                                    },
+                                    onClick = { viewModel.setInterval(m) },
+                                )
+                            }
                         }
                     }
                 },
             )
-        },
-        bottomBar = {
-            Surface(tonalElevation = 2.dp) {
-                Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            if (state.enabled) "Lock screen updates every ${state.intervalMinutes} min"
-                            else "Updates disabled",
-                            style = MaterialTheme.typography.labelMedium,
-                            modifier = Modifier.weight(1f),
-                        )
-                        var intervalExpanded by remember { mutableStateOf(false) }
-                        TextButton(onClick = { intervalExpanded = true }) {
-                            Text("Interval: ${state.intervalMinutes} min")
-                        }
-                        DropdownMenu(expanded = intervalExpanded, onDismissRequest = { intervalExpanded = false }) {
-                            MenuSurface {
-                                RenderScheduler.INTERVAL_CHOICES_MINUTES.forEach { m ->
-                                    DropdownMenuItem(
-                                        text = { Text(if (m >= 60) "${m / 60} h" else "$m min") },
-                                        onClick = { viewModel.setInterval(m); intervalExpanded = false },
-                                    )
-                                }
-                            }
-                        }
-                        Switch(
-                            checked = state.enabled,
-                            onCheckedChange = { enabled ->
-                                if (enabled && !RenderScheduler.canScheduleExact(context)) {
-                                    RenderScheduler.requestExactPermission(context)
-                                }
-                                viewModel.setEnabled(enabled)
-                            },
-                        )
-                    }
-                }
-            }
         },
     ) { padding ->
         Column(Modifier.padding(padding).fillMaxSize()) {
@@ -161,10 +162,10 @@ fun EditorScreen(viewModel: EditorViewModel = viewModel()) {
                         y = (sel.y + dy).coerceIn(-0.5f, 1.5f),
                     )
                 },
-                modifier = Modifier.weight(0.55f),
+                modifier = Modifier.weight(0.65f),
             )
             HorizontalDivider()
-            Row(Modifier.weight(0.45f)) {
+            Row(Modifier.weight(0.35f)) {
                 LayerPanel(
                     preset = state.preset,
                     selectedLayerId = state.selectedLayerId,

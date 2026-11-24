@@ -44,7 +44,7 @@ class EditorViewModel(app: Application) : AndroidViewModel(app) {
                 selectedLayerId = preset.root.children.lastOrNull()?.id,
                 enabled = store.enabled,
                 intervalMinutes = store.intervalMinutes,
-                fonts = assets.availableAssets().filter { it.endsWith("ttf") },
+                fonts = assets.builtinFonts() + assets.availableAssets().filter { it.endsWith("ttf") },
                 images = assets.availableAssets().filter { it.endsWith("img") },
             )
         }
@@ -180,7 +180,7 @@ class EditorViewModel(app: Application) : AndroidViewModel(app) {
             val list = assets.availableAssets()
             _state.value = _state.value.copy(
                 importFailed = false,
-                fonts = list.filter { it.endsWith("ttf") },
+                fonts = (assets.builtinFonts() + list.filter { it.endsWith("ttf") }),
                 images = list.filter { it.endsWith("img") },
             )
             if (kind == AssetStore.Kind.IMAGE) {

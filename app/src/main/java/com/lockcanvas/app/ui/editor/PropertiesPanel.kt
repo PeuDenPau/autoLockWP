@@ -73,6 +73,12 @@ fun PropertiesPanel(
     }
 }
 
+/** Human-readable name for a font id (builtin or imported). */
+fun fontDisplayName(id: String): String =
+    id.substringAfterLast('/')
+        .removeSuffix(".ttf")
+        .removeSuffix("-Regular")
+
 @Composable
 private fun TextProperties(layer: TextLayer, fonts: List<String>, viewModel: EditorViewModel) {
     var template by remember(layer.id) { mutableStateOf(layer.template) }
@@ -90,7 +96,7 @@ private fun TextProperties(layer: TextLayer, fonts: List<String>, viewModel: Edi
         var expanded by remember { mutableStateOf(false) }
         Box {
             TextButton(onClick = { expanded = true }) {
-                Text(layer.font ?: "Default")
+                Text(if (layer.font != null) fontDisplayName(layer.font!!) else "Default")
             }
             DropdownMenu(
                 expanded = expanded,
@@ -99,7 +105,7 @@ private fun TextProperties(layer: TextLayer, fonts: List<String>, viewModel: Edi
                 MenuSurface {
                     DropdownMenuItem(text = { Text("Default") }, onClick = { viewModel.assignFont(null); expanded = false })
                     fonts.forEach { f ->
-                        DropdownMenuItem(text = { Text(f) }, onClick = { viewModel.assignFont(f); expanded = false })
+                        DropdownMenuItem(text = { Text(fontDisplayName(f)) }, onClick = { viewModel.assignFont(f); expanded = false })
                     }
                 }
             }
