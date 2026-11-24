@@ -9,6 +9,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -34,6 +35,7 @@ fun PropertiesPanel(
     fonts: List<String>,
     images: List<String>,
     viewModel: EditorViewModel,
+    onPickImage: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     if (layer == null) {
@@ -66,7 +68,7 @@ fun PropertiesPanel(
 
         when (layer) {
             is TextLayer -> TextProperties(layer, fonts, viewModel)
-            is ImageLayer -> ImageProperties(layer, images, viewModel)
+            is ImageLayer -> ImageProperties(layer, images, viewModel, onPickImage)
             is ColorLayer -> ColorProperties(layer, viewModel)
             is GroupLayer -> {}
         }
@@ -120,25 +122,46 @@ private fun TextProperties(layer: TextLayer, fonts: List<String>, viewModel: Edi
 }
 
 @Composable
-private fun ImageProperties(layer: ImageLayer, images: List<String>, viewModel: EditorViewModel) {
+private fun imageDisplayName(images: List<String>, id: String?): String {
+    if (id == null) return "None"
+    val idx = images.indexOf(id)
+    return if (idx >= 0) "Image ${idx + 1}" else "None"
+}
+
+@Composable
+private fun ImageProperties(
+    layer: ImageLayer,
+    images: List<String>,
+    viewModel: EditorViewModel,
+    onPickImage: () -> Unit,
+) {
     LabeledSlider("Width", layer.width, defaultValue = 0.5f, min = 0.01f, max = 1.5f) { viewModel.updateImage(width = it) }
     LabeledSlider("Height", layer.height, defaultValue = 0.5f, min = 0.01f, max = 1.5f) { viewModel.updateImage(height = it) }
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 4.dp)) {
         Text("Source", style = MaterialTheme.typography.labelLarge, modifier = Modifier.weight(1f))
         var expanded by remember { mutableStateOf(false) }
         Box {
-            TextButton(onClick = { expanded = true }) { Text(layer.asset ?: "None") }
+            TextButton(onClick = { expanded = true }) { Text(imageDisplayName(images, layer.asset)) }
             DropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
             ) {
                 MenuSurface {
                     DropdownMenuItem(text = { Text("None") }, onClick = { viewModel.assignImage(null); expanded = false })
-                    images.forEach { img ->
-                        DropdownMenuItem(text = { Text(img) }, onClick = { viewModel.assignImage(img); expanded = false })
+                    images.forEachIndexed { index, img ->
+                        DropdownMenuItem(
+                            text = { Text("Image ${index + 1}") },
+                            onClick = { viewModel.assignImage(img); expanded = false },
+                        )
                     }
                 }
             }
+        }
+    }
+    Row(modifier = Modifier.padding(vertical = 2.dp)) {
+        OutlinedButton(onClick = onPickImage, modifier = Modifier.fillMaxWidth()) {
+            Icon(Icons.Filled.FileUpload, contentDescription = null)
+            Text("Replace image (photo picker)", modifier = Modifier.padding(start = 6.dp))
         }
     }
 }
@@ -180,7 +203,13 @@ private fun LabeledSlider(
     max: Float,
     onChange: (Float) -> Unit,
 ) {
-    var text by remember(value) { mutableStateOf("%.3f".format(value)) }
+    var text by remember { mutableStateOf("%.3f".format(value)) }
+    LaunchedEffect(value) {
+        val parsed = text.trim().toDoubleOrNull()
+        if (parsed == null || parsed.toFloat() != value) {
+            text = "%.3f".format(value)
+        }
+    }
     Column(modifier = Modifier.padding(vertical = 2.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
@@ -198,10 +227,13 @@ private fun LabeledSlider(
                 },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                textStyle = MaterialTheme.typography.labelMedium,
+                textStyle = MaterialTheme.typography.bodySmall.copy(
+                    textAlign = androidx.compose.ui.text.style.TextAlign.End,
+                ),
                 modifier = Modifier
-                    .width(84.dp)
-                    .height(40.dp),
+                    .widthIn(min = 72.dp, max = 108.dp)
+                    .height(48.dp)
+                    .padding(start = 2.dp, end = 2.dp),
             )
             IconButton(
                 onClick = { onChange(defaultValue) },

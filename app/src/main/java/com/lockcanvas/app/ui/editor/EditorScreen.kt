@@ -4,7 +4,10 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Redo
+import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -43,8 +46,14 @@ fun EditorScreen(viewModel: EditorViewModel = viewModel()) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("LockCanvas") },
+                title = { Text("AutoLockWp") },
                 actions = {
+                    IconButton(onClick = viewModel::undo, enabled = state.undoDepth > 0) {
+                        Icon(Icons.AutoMirrored.Filled.Undo, contentDescription = "Undo")
+                    }
+                    IconButton(onClick = viewModel::redo, enabled = state.redoDepth > 0) {
+                        Icon(Icons.AutoMirrored.Filled.Redo, contentDescription = "Redo")
+                    }
                     var addExpanded by remember { mutableStateOf(false) }
                     IconButton(onClick = { addExpanded = true }) {
                         Icon(Icons.Filled.Add, contentDescription = "Add layer")
@@ -151,7 +160,7 @@ fun EditorScreen(viewModel: EditorViewModel = viewModel()) {
             )
         },
     ) { padding ->
-        Column(Modifier.padding(padding).fillMaxSize()) {
+        Column(Modifier.padding(padding).fillMaxSize().imePadding()) {
             PreviewCanvas(
                 preset = state.preset,
                 selectedLayerId = state.selectedLayerId,
@@ -181,6 +190,11 @@ fun EditorScreen(viewModel: EditorViewModel = viewModel()) {
                     fonts = state.fonts,
                     images = state.images,
                     viewModel = viewModel,
+                    onPickImage = {
+                        imagePicker.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        )
+                    },
                     modifier = Modifier.weight(0.58f).fillMaxHeight(),
                 )
             }

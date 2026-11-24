@@ -25,6 +25,8 @@ data class EditorUiState(
     val fonts: List<String> = emptyList(),
     val images: List<String> = emptyList(),
     val importFailed: Boolean = false,
+    val undoDepth: Int = 0,
+    val redoDepth: Int = 0,
 )
 
 class EditorViewModel(app: Application) : AndroidViewModel(app) {
@@ -34,6 +36,9 @@ class EditorViewModel(app: Application) : AndroidViewModel(app) {
 
     private val _state = MutableStateFlow(EditorUiState())
     val state: StateFlow<EditorUiState> = _state.asStateFlow()
+
+    private val undoStack = ArrayDeque<Preset>()
+    private val redoStack = ArrayDeque<Preset>()
 
     init {
         viewModelScope.launch {
@@ -272,9 +277,47 @@ class EditorViewModel(app: Application) : AndroidViewModel(app) {
         updatePreset(s.preset.copy(root = replaceInTree(s.preset.root, id) { l -> l.withCommon(visible = !l.visible) }))
     }
 
-    private fun updatePreset(preset: Preset) {
-        _state.value = _state.value.copy(preset = preset)
+    private fun updatePreset(preset: Preset, pushUndo: Boolean = true) {
+        val previous = _state.value.preset
+        if (pushUndo && previous != preset) {
+            undoStack.addLast(previous)
+            if (undoStack.size > MAX_HISTORY) undoStack.removeFirst()
+            redoStack.clear()
+        }
+        _state.value = _state.value.copy(
+            preset = preset,
+            undoDepth = undoStack.size,
+            redoDepth = redoStack.size,
+        )
         viewModelScope.launch(Dispatchers.IO) { runCatching { store.save(preset) } }
+    }
+
+    fun undo() {
+        if (undoStack.isEmpty()) return
+        val previous = undoStack.removeLast()
+        redoStack.addLast(_state.value.preset)
+        _state.value = _state.value.copy(
+            preset = previous,
+            undoDepth = undoStack.size,
+            redoDepth = redoStack.size,
+        )
+        viewModelScope.launch(Dispatchers.IO) { runCatching { store.save(previous) } }
+    }
+
+    fun redo() {
+        if (redoStack.isEmpty()) return
+        val next = redoStack.removeLast()
+        undoStack.addLast(_state.value.preset)
+        _state.value = _state.value.copy(
+            preset = next,
+            undoDepth = undoStack.size,
+            redoDepth = redoStack.size,
+        )
+        viewModelScope.launch(Dispatchers.IO) { runCatching { store.save(next) } }
+    }
+
+    private companion object {
+        const val MAX_HISTORY = 50
     }
 
     fun setInterval(minutes: Int) {

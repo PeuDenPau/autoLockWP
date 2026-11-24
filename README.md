@@ -1,4 +1,4 @@
-# LockCanvas
+# AutoLockWp
 
 An Android app that composes custom lock-screen wallpapers (KLWP-style) and refreshes
 them on a user-selected interval (every 1, 5, 10, 15, 30, 60 minutes...).
