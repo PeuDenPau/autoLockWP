@@ -27,6 +27,7 @@ data class EditorUiState(
     val importFailed: Boolean = false,
     val undoDepth: Int = 0,
     val redoDepth: Int = 0,
+    val showGuides: Boolean = true,
 )
 
 class EditorViewModel(app: Application) : AndroidViewModel(app) {
@@ -85,6 +86,10 @@ class EditorViewModel(app: Application) : AndroidViewModel(app) {
             return current
         }
         return walk(root) as GroupLayer
+    }
+
+    fun toggleGuides() {
+        _state.value = _state.value.copy(showGuides = !_state.value.showGuides)
     }
 
     fun selectLayer(id: String?) {

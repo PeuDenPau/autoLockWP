@@ -48,7 +48,11 @@ fun PropertiesPanel(
         }
         return
     }
-    Column(modifier = modifier.verticalScroll(rememberScrollState())) {
+    Column(
+        modifier = modifier
+            .background(MaterialTheme.colorScheme.surfaceContainer)
+            .verticalScroll(rememberScrollState())
+    ) {
 
         var name by remember(layer.id) { mutableStateOf(layer.name) }
         OutlinedTextField(

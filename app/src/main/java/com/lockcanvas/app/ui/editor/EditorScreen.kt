@@ -44,6 +44,7 @@ fun EditorScreen(viewModel: EditorViewModel = viewModel()) {
     ) { uri -> uri?.let { viewModel.importFont(it) } }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = { Text("AutoLockWp") },
@@ -116,6 +117,16 @@ fun EditorScreen(viewModel: EditorViewModel = viewModel()) {
                                 leadingIcon = { Icon(Icons.Filled.Alarm, contentDescription = null) },
                                 onClick = { RenderScheduler.requestExactPermission(context); settingsExpanded = false },
                             )
+                            DropdownMenuItem(
+                                text = { Text("Lock screen guides " + if (state.showGuides) "ON" else "OFF") },
+                                leadingIcon = {
+                                    Icon(
+                                        if (state.showGuides) Icons.Filled.GridOn else Icons.Filled.GridOff,
+                                        contentDescription = null,
+                                    )
+                                },
+                                onClick = viewModel::toggleGuides,
+                            )
                             HorizontalDivider(modifier = Modifier.padding(vertical = 2.dp))
                             DropdownMenuItem(
                                 text = { Text(if (state.enabled) "Lock screen updates ON" else "Lock screen updates OFF") },
@@ -160,10 +171,15 @@ fun EditorScreen(viewModel: EditorViewModel = viewModel()) {
             )
         },
     ) { padding ->
-        Column(Modifier.padding(padding).fillMaxSize().imePadding()) {
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceContainer,
+            modifier = Modifier.padding(padding).fillMaxSize().imePadding(),
+        ) {
+        Column(Modifier.fillMaxSize()) {
             PreviewCanvas(
                 preset = state.preset,
                 selectedLayerId = state.selectedLayerId,
+                showGuides = state.showGuides,
                 onMoveLayer = { dx, dy ->
                     val sel = viewModel.selectedLayer() ?: return@PreviewCanvas
                     viewModel.updateTransform(
@@ -198,6 +214,7 @@ fun EditorScreen(viewModel: EditorViewModel = viewModel()) {
                     modifier = Modifier.weight(0.58f).fillMaxHeight(),
                 )
             }
+        }
         }
     }
 
