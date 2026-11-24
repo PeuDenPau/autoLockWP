@@ -9,8 +9,10 @@ them on a user-selected interval (every 1, 5, 10, 15, 30, 60 minutes...).
    supported), text layers and groups. Layers have X/Y position, anchor (pivot),
    rotation and opacity; the selected layer can be dragged directly on the preview.
 2. **Text layers** render a template with live variables, e.g.
-   `$TIME_HH$:$TIME_MM$` or `Battery $BATT$%`. You can import your own TTF/OTF fonts
-   (Settings → Import font).
+   `$TIME_HH$:$TIME_MM$` or `Battery $BATT$%`. Several **bundled FOSS fonts**
+   (SIL Open Font License) are preinstalled — Share Tech Mono, Bebas Neue,
+   Lobster, Pacifico, Abril Fatface, Space Mono — and you can import your own
+   TTF/OTF fonts (Settings → Import font).
 3. **Apply**: the preset is rendered at the wallpaper's desired resolution and set as
    the **lock screen wallpaper** (`WallpaperManager.setBitmap(..., FLAG_LOCK)`).
 4. **Scheduler**: an exact repeating alarm (`AlarmManager.setExactAndAllowWhileIdle`)

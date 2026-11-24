@@ -49,11 +49,29 @@ class AssetStore(private val context: Context) {
 
     fun openFont(id: String): Typeface? {
         fontCache[id]?.let { return it }
-        val file = File(dir, id)
-        if (!file.exists()) return null
-        val tf = runCatching { Typeface.createFromFile(file) }.getOrNull() ?: return null
+        val tf = if (id.startsWith(BUILTIN_FONT_PREFIX)) {
+            runCatching {
+                Typeface.createFromAsset(context.assets, id.removePrefix(BUILTIN_FONT_PREFIX))
+            }.getOrNull()
+        } else {
+            val file = File(dir, id)
+            if (!file.exists()) null else {
+                runCatching { Typeface.createFromFile(file) }.getOrNull()
+            }
+        } ?: return null
         fontCache[id] = tf
         return tf
+    }
+
+    /** Ids of the FOSS fonts bundled in assets/fonts (SIL OFL licensed). */
+    fun builtinFonts(): List<String> =
+        context.assets.list("fonts")
+            ?.map { "$BUILTIN_FONT_PREFIX$it" }
+            .orEmpty()
+            .sorted()
+
+    companion object {
+        const val BUILTIN_FONT_PREFIX = "fonts/"
     }
 
     fun bitmapOrNull(id: String?): android.graphics.Bitmap? =

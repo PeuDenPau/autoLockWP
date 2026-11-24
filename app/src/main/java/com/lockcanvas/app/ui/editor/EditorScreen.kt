@@ -15,6 +15,17 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.lockcanvas.app.schedule.RenderScheduler
 
+/** Opaque, bordered container for dropdown menu content. */
+@Composable
+fun MenuSurface(content: @Composable ColumnScope.() -> Unit) {
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    ) {
+        Column(content = content)
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditorScreen(viewModel: EditorViewModel = viewModel()) {
@@ -39,98 +50,105 @@ fun EditorScreen(viewModel: EditorViewModel = viewModel()) {
                         Icon(Icons.Filled.Add, contentDescription = "Add layer")
                     }
                     DropdownMenu(expanded = addExpanded, onDismissRequest = { addExpanded = false }) {
-                        DropdownMenuItem(
-                            text = { Text("Text") },
-                            leadingIcon = { Icon(Icons.Filled.TextFields, contentDescription = null) },
-                            onClick = { viewModel.addLayer(LayerType.TEXT); addExpanded = false },
-                        )
-                        DropdownMenuItem(
-                            text = { Text("Image") },
-                            leadingIcon = { Icon(Icons.Filled.Image, contentDescription = null) },
-                            onClick = {
-                                imagePicker.launch(
-                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                                )
-                                addExpanded = false
-                            },
-                        )
-                        DropdownMenuItem(
-                            text = { Text("Image (existing asset)") },
-                            leadingIcon = { Icon(Icons.Filled.FileUpload, contentDescription = null) },
-                            onClick = { viewModel.addLayer(LayerType.IMAGE); addExpanded = false },
-                        )
-                        DropdownMenuItem(
-                            text = { Text("Color") },
-                            leadingIcon = { Icon(Icons.Filled.Palette, contentDescription = null) },
-                            onClick = { viewModel.addLayer(LayerType.COLOR); addExpanded = false },
-                        )
-                        DropdownMenuItem(
-                            text = { Text("Group") },
-                            leadingIcon = { Icon(Icons.Filled.Folder, contentDescription = null) },
-                            onClick = { viewModel.addLayer(LayerType.GROUP); addExpanded = false },
-                        )
+                        MenuSurface {
+                            DropdownMenuItem(
+                                text = { Text("Text") },
+                                leadingIcon = { Icon(Icons.Filled.TextFields, contentDescription = null) },
+                                onClick = { viewModel.addLayer(LayerType.TEXT); addExpanded = false },
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Image") },
+                                leadingIcon = { Icon(Icons.Filled.Image, contentDescription = null) },
+                                onClick = {
+                                    imagePicker.launch(
+                                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                    )
+                                    addExpanded = false
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Image (existing asset)") },
+                                leadingIcon = { Icon(Icons.Filled.FileUpload, contentDescription = null) },
+                                onClick = { viewModel.addLayer(LayerType.IMAGE); addExpanded = false },
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Color") },
+                                leadingIcon = { Icon(Icons.Filled.Palette, contentDescription = null) },
+                                onClick = { viewModel.addLayer(LayerType.COLOR); addExpanded = false },
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Group") },
+                                leadingIcon = { Icon(Icons.Filled.Folder, contentDescription = null) },
+                                onClick = { viewModel.addLayer(LayerType.GROUP); addExpanded = false },
+                            )
+                        }
                     }
                     var settingsExpanded by remember { mutableStateOf(false) }
                     IconButton(onClick = { settingsExpanded = true }) {
                         Icon(Icons.Filled.Settings, contentDescription = "Settings")
                     }
                     DropdownMenu(expanded = settingsExpanded, onDismissRequest = { settingsExpanded = false }) {
-                        DropdownMenuItem(
-                            text = { Text("Import font (TTF)") },
-                            leadingIcon = { Icon(Icons.Filled.TextFormat, contentDescription = null) },
-                            onClick = {
-                                fontPicker.launch(arrayOf("font/ttf", "font/otf", "application/octet-stream"))
-                                settingsExpanded = false
-                            },
-                        )
-                        DropdownMenuItem(
-                            text = { Text("Apply now") },
-                            leadingIcon = { Icon(Icons.Filled.Refresh, contentDescription = null) },
-                            onClick = { viewModel.applyOnce(); settingsExpanded = false },
-                        )
-                        DropdownMenuItem(
-                            text = { Text("Request exact alarm permission") },
-                            leadingIcon = { Icon(Icons.Filled.Alarm, contentDescription = null) },
-                            onClick = { RenderScheduler.requestExactPermission(context); settingsExpanded = false },
-                        )
-                    }
-                },
-            )
-        },
-        bottomBar = {
-            Surface(tonalElevation = 2.dp) {
-                Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            if (state.enabled) "Lock screen updates every ${state.intervalMinutes} min"
-                            else "Updates disabled",
-                            style = MaterialTheme.typography.labelMedium,
-                            modifier = Modifier.weight(1f),
-                        )
-                        var intervalExpanded by remember { mutableStateOf(false) }
-                        TextButton(onClick = { intervalExpanded = true }) {
-                            Text("Interval: ${state.intervalMinutes} min")
-                        }
-                        DropdownMenu(expanded = intervalExpanded, onDismissRequest = { intervalExpanded = false }) {
+                        MenuSurface {
+                            DropdownMenuItem(
+                                text = { Text("Import font (TTF)") },
+                                leadingIcon = { Icon(Icons.Filled.TextFormat, contentDescription = null) },
+                                onClick = {
+                                    fontPicker.launch(arrayOf("font/ttf", "font/otf", "application/octet-stream"))
+                                    settingsExpanded = false
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Apply now") },
+                                leadingIcon = { Icon(Icons.Filled.Refresh, contentDescription = null) },
+                                onClick = { viewModel.applyOnce(); settingsExpanded = false },
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Request exact alarm permission") },
+                                leadingIcon = { Icon(Icons.Filled.Alarm, contentDescription = null) },
+                                onClick = { RenderScheduler.requestExactPermission(context); settingsExpanded = false },
+                            )
+                            HorizontalDivider(modifier = Modifier.padding(vertical = 2.dp))
+                            DropdownMenuItem(
+                                text = { Text(if (state.enabled) "Lock screen updates ON" else "Lock screen updates OFF") },
+                                trailingIcon = {
+                                    Switch(
+                                        checked = state.enabled,
+                                        onCheckedChange = { enabled ->
+                                            if (enabled && !RenderScheduler.canScheduleExact(context)) {
+                                                RenderScheduler.requestExactPermission(context)
+                                            }
+                                            viewModel.setEnabled(enabled)
+                                        },
+                                    )
+                                },
+                                onClick = {
+                                    val enabled = !state.enabled
+                                    if (enabled && !RenderScheduler.canScheduleExact(context)) {
+                                        RenderScheduler.requestExactPermission(context)
+                                    }
+                                    viewModel.setEnabled(enabled)
+                                },
+                            )
+                            Text(
+                                "Update interval",
+                                style = MaterialTheme.typography.labelMedium,
+                                modifier = Modifier.padding(start = 16.dp, top = 4.dp),
+                            )
                             RenderScheduler.INTERVAL_CHOICES_MINUTES.forEach { m ->
                                 DropdownMenuItem(
-                                    text = { Text(if (m >= 60) "${m / 60} h" else "$m min") },
-                                    onClick = { viewModel.setInterval(m); intervalExpanded = false },
+                                    text = {
+                                        Text(
+                                            (if (m >= 60) "${m / 60} h" else "$m min") +
+                                                if (m == state.intervalMinutes) "  •" else ""
+                                        )
+                                    },
+                                    onClick = { viewModel.setInterval(m) },
                                 )
                             }
                         }
-                        Switch(
-                            checked = state.enabled,
-                            onCheckedChange = { enabled ->
-                                if (enabled && !RenderScheduler.canScheduleExact(context)) {
-                                    RenderScheduler.requestExactPermission(context)
-                                }
-                                viewModel.setEnabled(enabled)
-                            },
-                        )
                     }
-                }
-            }
+                },
+            )
         },
     ) { padding ->
         Column(Modifier.padding(padding).fillMaxSize()) {
@@ -144,10 +162,10 @@ fun EditorScreen(viewModel: EditorViewModel = viewModel()) {
                         y = (sel.y + dy).coerceIn(-0.5f, 1.5f),
                     )
                 },
-                modifier = Modifier.weight(0.55f),
+                modifier = Modifier.weight(0.65f),
             )
             HorizontalDivider()
-            Row(Modifier.weight(0.45f)) {
+            Row(Modifier.weight(0.35f)) {
                 LayerPanel(
                     preset = state.preset,
                     selectedLayerId = state.selectedLayerId,
