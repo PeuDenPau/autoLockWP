@@ -3,6 +3,8 @@
 An Android app that composes custom lock-screen wallpapers (KLWP-style) and refreshes
 them on a user-selected interval (every 1, 5, 10, 15, 30, 60 minutes...).
 
+**Download**: prebuilt APK at [`build/AutoLockWp-debug.apk`](build/AutoLockWp-debug.apk)
+
 ## How it works
 
 1. **Editor**: build a scene out of layers — solid color, image (PNG with transparency

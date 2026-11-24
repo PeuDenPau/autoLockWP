@@ -1,7 +1,9 @@
 *.iml
 .gradle/
 .idea/
-build/
+build/*
+!build/AutoLockWp-debug.apk
+app/build/
 local.properties
 .DS_Store
 captures/
