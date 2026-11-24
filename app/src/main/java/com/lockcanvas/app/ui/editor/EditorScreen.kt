@@ -15,6 +15,17 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.lockcanvas.app.schedule.RenderScheduler
 
+/** Opaque, bordered container for dropdown menu content. */
+@Composable
+fun MenuSurface(content: @Composable ColumnScope.() -> Unit) {
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    ) {
+        Column(content = content)
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditorScreen(viewModel: EditorViewModel = viewModel()) {
@@ -39,60 +50,64 @@ fun EditorScreen(viewModel: EditorViewModel = viewModel()) {
                         Icon(Icons.Filled.Add, contentDescription = "Add layer")
                     }
                     DropdownMenu(expanded = addExpanded, onDismissRequest = { addExpanded = false }) {
-                        DropdownMenuItem(
-                            text = { Text("Text") },
-                            leadingIcon = { Icon(Icons.Filled.TextFields, contentDescription = null) },
-                            onClick = { viewModel.addLayer(LayerType.TEXT); addExpanded = false },
-                        )
-                        DropdownMenuItem(
-                            text = { Text("Image") },
-                            leadingIcon = { Icon(Icons.Filled.Image, contentDescription = null) },
-                            onClick = {
-                                imagePicker.launch(
-                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                                )
-                                addExpanded = false
-                            },
-                        )
-                        DropdownMenuItem(
-                            text = { Text("Image (existing asset)") },
-                            leadingIcon = { Icon(Icons.Filled.FileUpload, contentDescription = null) },
-                            onClick = { viewModel.addLayer(LayerType.IMAGE); addExpanded = false },
-                        )
-                        DropdownMenuItem(
-                            text = { Text("Color") },
-                            leadingIcon = { Icon(Icons.Filled.Palette, contentDescription = null) },
-                            onClick = { viewModel.addLayer(LayerType.COLOR); addExpanded = false },
-                        )
-                        DropdownMenuItem(
-                            text = { Text("Group") },
-                            leadingIcon = { Icon(Icons.Filled.Folder, contentDescription = null) },
-                            onClick = { viewModel.addLayer(LayerType.GROUP); addExpanded = false },
-                        )
+                        MenuSurface {
+                            DropdownMenuItem(
+                                text = { Text("Text") },
+                                leadingIcon = { Icon(Icons.Filled.TextFields, contentDescription = null) },
+                                onClick = { viewModel.addLayer(LayerType.TEXT); addExpanded = false },
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Image") },
+                                leadingIcon = { Icon(Icons.Filled.Image, contentDescription = null) },
+                                onClick = {
+                                    imagePicker.launch(
+                                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                    )
+                                    addExpanded = false
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Image (existing asset)") },
+                                leadingIcon = { Icon(Icons.Filled.FileUpload, contentDescription = null) },
+                                onClick = { viewModel.addLayer(LayerType.IMAGE); addExpanded = false },
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Color") },
+                                leadingIcon = { Icon(Icons.Filled.Palette, contentDescription = null) },
+                                onClick = { viewModel.addLayer(LayerType.COLOR); addExpanded = false },
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Group") },
+                                leadingIcon = { Icon(Icons.Filled.Folder, contentDescription = null) },
+                                onClick = { viewModel.addLayer(LayerType.GROUP); addExpanded = false },
+                            )
+                        }
                     }
                     var settingsExpanded by remember { mutableStateOf(false) }
                     IconButton(onClick = { settingsExpanded = true }) {
                         Icon(Icons.Filled.Settings, contentDescription = "Settings")
                     }
                     DropdownMenu(expanded = settingsExpanded, onDismissRequest = { settingsExpanded = false }) {
-                        DropdownMenuItem(
-                            text = { Text("Import font (TTF)") },
-                            leadingIcon = { Icon(Icons.Filled.TextFormat, contentDescription = null) },
-                            onClick = {
-                                fontPicker.launch(arrayOf("font/ttf", "font/otf", "application/octet-stream"))
-                                settingsExpanded = false
-                            },
-                        )
-                        DropdownMenuItem(
-                            text = { Text("Apply now") },
-                            leadingIcon = { Icon(Icons.Filled.Refresh, contentDescription = null) },
-                            onClick = { viewModel.applyOnce(); settingsExpanded = false },
-                        )
-                        DropdownMenuItem(
-                            text = { Text("Request exact alarm permission") },
-                            leadingIcon = { Icon(Icons.Filled.Alarm, contentDescription = null) },
-                            onClick = { RenderScheduler.requestExactPermission(context); settingsExpanded = false },
-                        )
+                        MenuSurface {
+                            DropdownMenuItem(
+                                text = { Text("Import font (TTF)") },
+                                leadingIcon = { Icon(Icons.Filled.TextFormat, contentDescription = null) },
+                                onClick = {
+                                    fontPicker.launch(arrayOf("font/ttf", "font/otf", "application/octet-stream"))
+                                    settingsExpanded = false
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Apply now") },
+                                leadingIcon = { Icon(Icons.Filled.Refresh, contentDescription = null) },
+                                onClick = { viewModel.applyOnce(); settingsExpanded = false },
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Request exact alarm permission") },
+                                leadingIcon = { Icon(Icons.Filled.Alarm, contentDescription = null) },
+                                onClick = { RenderScheduler.requestExactPermission(context); settingsExpanded = false },
+                            )
+                        }
                     }
                 },
             )
@@ -112,11 +127,13 @@ fun EditorScreen(viewModel: EditorViewModel = viewModel()) {
                             Text("Interval: ${state.intervalMinutes} min")
                         }
                         DropdownMenu(expanded = intervalExpanded, onDismissRequest = { intervalExpanded = false }) {
-                            RenderScheduler.INTERVAL_CHOICES_MINUTES.forEach { m ->
-                                DropdownMenuItem(
-                                    text = { Text(if (m >= 60) "${m / 60} h" else "$m min") },
-                                    onClick = { viewModel.setInterval(m); intervalExpanded = false },
-                                )
+                            MenuSurface {
+                                RenderScheduler.INTERVAL_CHOICES_MINUTES.forEach { m ->
+                                    DropdownMenuItem(
+                                        text = { Text(if (m >= 60) "${m / 60} h" else "$m min") },
+                                        onClick = { viewModel.setInterval(m); intervalExpanded = false },
+                                    )
+                                }
                             }
                         }
                         Switch(
