@@ -1,5 +1,6 @@
 package com.lockcanvas.app.ui.editor
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -33,7 +34,7 @@ fun LayerPanel(
     modifier: Modifier = Modifier,
 ) {
     val rows = remember(preset) { flatten(preset.root.children) }
-    LazyColumn(modifier = modifier) {
+    LazyColumn(modifier = modifier.background(MaterialTheme.colorScheme.surfaceContainer)) {
         items(rows) { row ->
             val selected = row.layer.id == selectedLayerId
             Surface(

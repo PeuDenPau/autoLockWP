@@ -4,7 +4,10 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Redo
+import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -41,10 +44,17 @@ fun EditorScreen(viewModel: EditorViewModel = viewModel()) {
     ) { uri -> uri?.let { viewModel.importFont(it) } }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                title = { Text("LockCanvas") },
+                title = { Text("AutoLockWp") },
                 actions = {
+                    IconButton(onClick = viewModel::undo, enabled = state.undoDepth > 0) {
+                        Icon(Icons.AutoMirrored.Filled.Undo, contentDescription = "Undo")
+                    }
+                    IconButton(onClick = viewModel::redo, enabled = state.redoDepth > 0) {
+                        Icon(Icons.AutoMirrored.Filled.Redo, contentDescription = "Redo")
+                    }
                     var addExpanded by remember { mutableStateOf(false) }
                     IconButton(onClick = { addExpanded = true }) {
                         Icon(Icons.Filled.Add, contentDescription = "Add layer")
@@ -107,6 +117,16 @@ fun EditorScreen(viewModel: EditorViewModel = viewModel()) {
                                 leadingIcon = { Icon(Icons.Filled.Alarm, contentDescription = null) },
                                 onClick = { RenderScheduler.requestExactPermission(context); settingsExpanded = false },
                             )
+                            DropdownMenuItem(
+                                text = { Text("Lock screen guides " + if (state.showGuides) "ON" else "OFF") },
+                                leadingIcon = {
+                                    Icon(
+                                        if (state.showGuides) Icons.Filled.GridOn else Icons.Filled.GridOff,
+                                        contentDescription = null,
+                                    )
+                                },
+                                onClick = viewModel::toggleGuides,
+                            )
                             HorizontalDivider(modifier = Modifier.padding(vertical = 2.dp))
                             DropdownMenuItem(
                                 text = { Text(if (state.enabled) "Lock screen updates ON" else "Lock screen updates OFF") },
@@ -151,10 +171,15 @@ fun EditorScreen(viewModel: EditorViewModel = viewModel()) {
             )
         },
     ) { padding ->
-        Column(Modifier.padding(padding).fillMaxSize()) {
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceContainer,
+            modifier = Modifier.padding(padding).fillMaxSize().imePadding(),
+        ) {
+        Column(Modifier.fillMaxSize()) {
             PreviewCanvas(
                 preset = state.preset,
                 selectedLayerId = state.selectedLayerId,
+                showGuides = state.showGuides,
                 onMoveLayer = { dx, dy ->
                     val sel = viewModel.selectedLayer() ?: return@PreviewCanvas
                     viewModel.updateTransform(
@@ -181,9 +206,15 @@ fun EditorScreen(viewModel: EditorViewModel = viewModel()) {
                     fonts = state.fonts,
                     images = state.images,
                     viewModel = viewModel,
+                    onPickImage = {
+                        imagePicker.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        )
+                    },
                     modifier = Modifier.weight(0.58f).fillMaxHeight(),
                 )
             }
+        }
         }
     }
 

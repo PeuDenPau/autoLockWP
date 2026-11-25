@@ -1,7 +1,9 @@
-# LockCanvas
+# AutoLockWp
 
 An Android app that composes custom lock-screen wallpapers (KLWP-style) and refreshes
 them on a user-selected interval (every 1, 5, 10, 15, 30, 60 minutes...).
+
+**Download**: prebuilt APK at [`build/AutoLockWp-debug.apk`](build/AutoLockWp-debug.apk)
 
 ## How it works
 
@@ -30,8 +32,7 @@ run `gradle wrapper --gradle-version 8.7` locally, then:
 ```
 
 Requirements: JDK 17, Android SDK 34. Gradle wrapper 8.7 is included.
-Every push is also built by CI (see `.github/workflows/build.yml`), which uploads
-the APK as an artifact of each workflow run.
+A prebuilt debug APK is committed at `build/AutoLockWp-debug.apk`.
 
 ## First run / permissions
 
