@@ -113,11 +113,6 @@ fun EditorScreen(viewModel: EditorViewModel = viewModel()) {
                                 onClick = { viewModel.applyOnce(); settingsExpanded = false },
                             )
                             DropdownMenuItem(
-                                text = { Text("Request exact alarm permission") },
-                                leadingIcon = { Icon(Icons.Filled.Alarm, contentDescription = null) },
-                                onClick = { RenderScheduler.requestExactPermission(context); settingsExpanded = false },
-                            )
-                            DropdownMenuItem(
                                 text = { Text("Lock screen guides " + if (state.showGuides) "ON" else "OFF") },
                                 leadingIcon = {
                                     Icon(
@@ -133,21 +128,10 @@ fun EditorScreen(viewModel: EditorViewModel = viewModel()) {
                                 trailingIcon = {
                                     Switch(
                                         checked = state.enabled,
-                                        onCheckedChange = { enabled ->
-                                            if (enabled && !RenderScheduler.canScheduleExact(context)) {
-                                                RenderScheduler.requestExactPermission(context)
-                                            }
-                                            viewModel.setEnabled(enabled)
-                                        },
+                                        onCheckedChange = { enabled -> viewModel.setEnabled(enabled) },
                                     )
                                 },
-                                onClick = {
-                                    val enabled = !state.enabled
-                                    if (enabled && !RenderScheduler.canScheduleExact(context)) {
-                                        RenderScheduler.requestExactPermission(context)
-                                    }
-                                    viewModel.setEnabled(enabled)
-                                },
+                                onClick = { viewModel.setEnabled(!state.enabled) },
                             )
                             Text(
                                 "Update interval",

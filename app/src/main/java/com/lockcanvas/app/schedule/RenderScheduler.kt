@@ -5,14 +5,17 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import com.lockcanvas.app.data.PresetStore
 import com.lockcanvas.app.render.applyPresetFromStorage
 
 /**
- * Schedules periodic lock screen re-renders with exact alarms.
- * WorkManager has a 15-minute floor, so sub-15-minute intervals rely on
- * setExactAndAllowWhileIdle (requires SCHEDULE_EXACT_ALARM on Android 12+).
+ * Schedules periodic lock screen re-renders.
+ *
+ * Uses AlarmManager.setAlarmClock: alarm-clock alarms fire on time even in
+ * Doze (screen locked), are exempt from the once-per-~9-minutes Doze
+ * throttling that setExactAndAllowWhileIdle suffers, and need no
+ * SCHEDULE_EXACT_ALARM permission. Trade-off: the system shows the standard
+ * alarm icon in the status bar while updates are enabled.
  */
 object RenderScheduler {
 
@@ -26,23 +29,6 @@ object RenderScheduler {
             context, 1001, intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
-    }
-
-    fun canScheduleExact(context: Context): Boolean {
-        val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        return if (Build.VERSION.SDK_INT >= 31) am.canScheduleExactAlarms() else true
-    }
-
-    fun requestExactPermission(context: Context) {
-        if (Build.VERSION.SDK_INT >= 31) {
-            runCatching {
-                context.startActivity(
-                    Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
-                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        .setData(android.net.Uri.parse("package:${context.packageName}"))
-                )
-            }
-        }
     }
 
     fun start(context: Context) {
@@ -70,12 +56,13 @@ object RenderScheduler {
     fun scheduleNext(context: Context, intervalMinutes: Int) {
         val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val at = System.currentTimeMillis() + intervalMinutes * 60_000L
-        val pi = intent(context)
-        try {
-            am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pi)
-        } catch (security: SecurityException) {
-            am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pi)
-        }
+        val launch = context.packageManager.getLaunchIntentForPackage(context.packageName)
+        val showIntent = if (launch == null) null else PendingIntent.getActivity(
+            context, 0, launch,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val info = AlarmManager.AlarmClockInfo(at, showIntent)
+        am.setAlarmClock(info, intent(context))
     }
 }
 
@@ -89,6 +76,15 @@ class RenderAlarmReceiver : BroadcastReceiver() {
                 pending.finish()
             }
         }.start()
+    }
+}
+
+/** Re-renders immediately when the user unlocks, so the wallpaper is fresh on wake-up. */
+class UnlockReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        if (intent.action != Intent.ACTION_USER_PRESENT) return
+        if (!PresetStore(context).enabled) return
+        RenderScheduler.tick(context.applicationContext)
     }
 }
 

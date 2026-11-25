@@ -36,9 +36,11 @@ A prebuilt debug APK is committed at `build/AutoLockWp-debug.apk`.
 
 ## First run / permissions
 
-- On Android 12+ the app needs **exact alarm** permission for sub-15-minute intervals.
-  Grant it via Settings → "Request exact alarm permission" (the app opens the system
-  dialog) or fall back to inexact updates.
+- No special permissions are requested. Periodic updates use alarm-clock alarms
+  (they fire on time even with the screen locked, in Doze, and without any
+  permission). Trade-off: the system shows the standard alarm icon in the status
+  bar while updates are enabled. The wallpaper is also re-rendered the moment
+  you unlock, so it is always fresh.
 - Images are imported with the system Photo Picker; fonts with the document picker.
   No storage permissions are requested.
 
@@ -62,7 +64,7 @@ render/       AssetStore.kt (image/font asset cache + import)
              Renderer.kt (pure canvas renderer, editor + background share it)
              Variables.kt (live variable provider)
              LockWallpaperApplier.kt (render + set lock wallpaper)
-schedule/    RenderScheduler.kt (exact alarm scheduler, alarm + boot receivers)
+schedule/    RenderScheduler.kt (alarm-clock scheduler, alarm/boot/unlock receivers)
 ui/          MainActivity + Compose editor (preview, layer tree, properties)
 ```
 

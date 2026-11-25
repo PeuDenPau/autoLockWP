@@ -63,28 +63,32 @@ fun PreviewCanvas(
     }
 
     Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .aspectRatio(720f / 1600f)
-            .pointerInput(selectedLayerId) {
-                detectDragGestures { change, dragAmount ->
-                    change.consume()
-                    val w = size.width.toFloat().coerceAtLeast(1f)
-                    val h = size.height.toFloat().coerceAtLeast(1f)
-                    onMoveLayer(dragAmount.x / w, dragAmount.y / h)
-                }
-            }
+        modifier = modifier,
+        contentAlignment = androidx.compose.ui.Alignment.Center,
     ) {
-        bitmap?.let { bmp ->
-            Image(
-                bitmap = bmp.asImageBitmap(),
-                contentDescription = "Wallpaper preview",
-                contentScale = ContentScale.Fit,
-                modifier = Modifier.fillMaxWidth().aspectRatio(bmp.width.toFloat() / bmp.height.toFloat()),
-            )
-        }
-        if (showGuides) {
-            LockScreenGuides(Modifier.matchParentSize())
+        Box(
+            modifier = Modifier
+                .aspectRatio(720f / 1600f)
+                .pointerInput(selectedLayerId) {
+                    detectDragGestures { change, dragAmount ->
+                        change.consume()
+                        val w = size.width.toFloat().coerceAtLeast(1f)
+                        val h = size.height.toFloat().coerceAtLeast(1f)
+                        onMoveLayer(dragAmount.x / w, dragAmount.y / h)
+                    }
+                }
+        ) {
+            bitmap?.let { bmp ->
+                Image(
+                    bitmap = bmp.asImageBitmap(),
+                    contentDescription = "Wallpaper preview",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.fillMaxWidth().aspectRatio(bmp.width.toFloat() / bmp.height.toFloat()),
+                )
+            }
+            if (showGuides) {
+                LockScreenGuides(Modifier.matchParentSize())
+            }
         }
     }
 }
